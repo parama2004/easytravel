@@ -1,5 +1,6 @@
 const dns = require("dns");
 
+// Use public DNS servers
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 require("dotenv").config();
@@ -12,21 +13,30 @@ const bcrypt = require("bcryptjs");
 const User = require("./models/User");
 const Destination = require("./models/Destination");
 const Booking = require("./models/booking");
-const authRoutes = require("./routes/auth");
 
-const {
-  protect,
-  adminOnly,
-} = require("./middleware/authMiddleware");
+// IMPORTANT: Routes folder has capital R
+const authRoutes = require("./Routes/auth");
+
+const { protect, adminOnly } = require("./middleware/authMiddleware");
+
 const app = express();
+
+// ===============================
+// MIDDLEWARE
+// ===============================
 
 app.use(cors());
 app.use(express.json());
+
+// ===============================
+// AUTH ROUTES
+// ===============================
+
 app.use("/api/auth", authRoutes);
 
-// =====================================================
+// ===============================
 // MONGODB CONNECTION
-// =====================================================
+// ===============================
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -35,15 +45,12 @@ mongoose
     console.log("Database:", mongoose.connection.name);
   })
   .catch((error) => {
-    console.error(
-      "MongoDB connection failed:",
-      error.message
-    );
+    console.error("MongoDB connection failed:", error.message);
   });
 
-// =====================================================
-// HOME
-// =====================================================
+// ===============================
+// HOME / TEST ROUTE
+// ===============================
 
 app.get("/", (req, res) => {
   res.json({
@@ -51,116 +58,120 @@ app.get("/", (req, res) => {
   });
 });
 
-// =====================================================
+// ===============================
 // GET ALL DESTINATIONS
-// =====================================================
+// ===============================
 
 app.get("/api/destinations", async (req, res) => {
   try {
-    const destinations = await Destination.find();
+    const destinations = await Destination.find().sort({
+      createdAt: -1,
+    });
 
     res.json(destinations);
   } catch (error) {
-    console.error(
-      "Error fetching destinations:",
-      error.message
-    );
+    console.error("Error fetching destinations:", error);
 
     res.status(500).json({
       message: "Failed to fetch destinations",
+      error: error.message,
     });
   }
 });
 
-// =====================================================
-// RECOMMENDATION API
-// =====================================================
+// ===============================
+// AI / RULE-BASED RECOMMENDATION
+// ===============================
 
 app.post("/api/recommendations", async (req, res) => {
   try {
     const {
-      wish,
-      budget,
-      region,
-      difficulty,
-      season,
+      wish = "",
+      budget = "",
+      region = "",
+      difficulty = "",
+      season = "",
     } = req.body;
-
-    console.log("------------------------------------");
-    console.log("USER SEARCH:", wish);
-    console.log("------------------------------------");
 
     const destinations = await Destination.find();
 
     if (!destinations.length) {
       return res.status(404).json({
-        message: "No destinations available",
+        message: "No destinations found",
       });
     }
 
-    // =================================================
-    // CLEAN USER SEARCH
-    // =================================================
+    // --------------------------------
+    // Normalize user input
+    // --------------------------------
 
-    const searchText = (wish || "")
+    const normalizedWish = String(wish)
       .toLowerCase()
       .trim();
+
+    const normalizedBudget = String(budget)
+      .toLowerCase()
+      .trim();
+
+    const normalizedRegion = String(region)
+      .toLowerCase()
+      .trim();
+
+    const normalizedDifficulty = String(difficulty)
+      .toLowerCase()
+      .trim();
+
+    const normalizedSeason = String(season)
+      .toLowerCase()
+      .trim();
+
+    // --------------------------------
+    // Words that should be ignored
+    // --------------------------------
 
     const ignoredWords = new Set([
       "i",
       "want",
-      "to",
-      "visit",
-      "go",
-      "travel",
-      "trip",
-      "take",
-      "for",
       "a",
       "an",
       "the",
+      "to",
+      "go",
+      "visit",
+      "travel",
+      "trip",
+      "place",
+      "destination",
       "in",
-      "on",
+      "for",
       "with",
       "and",
       "or",
       "my",
       "me",
-      "please",
-      "can",
-      "would",
-      "like",
+      "some",
+      "somewhere",
       "looking",
-      "lookingfor",
-      "place",
-      "places",
-      "destination",
-      "destinations",
+      "look",
+      "like",
+      "would",
+      "love",
+      "prefer",
+      "need",
+      "wanting",
     ]);
 
-    const words = searchText
-      .replace(/[^\w\s-]/g, " ")
-      .split(/\s+/)
-      .map((word) => word.trim())
-      .filter(
-        (word) =>
-          word.length >= 3 &&
-          !ignoredWords.has(word)
-      );
+    // --------------------------------
+    // Synonyms
+    // --------------------------------
 
-    console.log("SEARCH WORDS:", words);
-
-    // =================================================
-    // WORD SYNONYMS
-    // =================================================
-
-    const synonyms = {
+    const synonymGroups = {
       mountain: [
         "mountain",
         "mountains",
+        "mount",
         "himalaya",
-        "himalayas",
-        "snow",
+        "himalayan",
         "peak",
         "peaks",
       ],
@@ -169,17 +180,16 @@ app.post("/api/recommendations", async (req, res) => {
         "lake",
         "lakes",
         "water",
-        "waters",
-        "lakeview",
+        "waterfall",
       ],
 
       temple: [
         "temple",
         "temples",
-        "shrine",
-        "shrines",
+        "spiritual",
         "religious",
         "religion",
+        "holy",
       ],
 
       culture: [
@@ -187,11 +197,8 @@ app.post("/api/recommendations", async (req, res) => {
         "cultural",
         "heritage",
         "history",
-        "historic",
+        "historical",
         "traditional",
-        "tradition",
-        "newari",
-        "tibetan",
       ],
 
       adventure: [
@@ -200,27 +207,26 @@ app.post("/api/recommendations", async (req, res) => {
         "exciting",
         "thrill",
         "thrilling",
+        "extreme",
       ],
 
       trekking: [
         "trek",
         "trekking",
-        "hiking",
         "hike",
+        "hiking",
+        "walking",
         "trail",
         "trails",
-        "walk",
-        "walking",
       ],
 
       peaceful: [
         "peaceful",
         "peace",
         "quiet",
-        "calm",
         "relax",
         "relaxing",
-        "relaxation",
+        "calm",
         "serene",
       ],
 
@@ -230,6 +236,7 @@ app.post("/api/recommendations", async (req, res) => {
         "couple",
         "couples",
         "honeymoon",
+        "love",
       ],
 
       wildlife: [
@@ -238,36 +245,29 @@ app.post("/api/recommendations", async (req, res) => {
         "animal",
         "jungle",
         "safari",
-        "tiger",
-        "rhino",
-        "elephant",
-        "bird",
-        "birds",
+        "nature",
       ],
 
       city: [
         "city",
+        "cities",
         "urban",
         "town",
-        "shopping",
-        "market",
       ],
 
       nature: [
         "nature",
         "natural",
-        "green",
-        "forest",
         "scenery",
-        "scenic",
+        "landscape",
         "beautiful",
         "beauty",
-        "landscape",
-        "landscapes",
+        "greenery",
       ],
 
       family: [
         "family",
+        "families",
         "children",
         "kids",
         "child",
@@ -277,209 +277,233 @@ app.post("/api/recommendations", async (req, res) => {
         "cheap",
         "budget",
         "affordable",
-        "low-cost",
-        "lowcost",
+        "low",
+        "inexpensive",
       ],
     };
 
-    // =================================================
-    // EXPAND SEARCH WORDS
-    // =================================================
+    // --------------------------------
+    // Expand wish words
+    // --------------------------------
 
-    let expandedWords = [...words];
+    const wishWords = normalizedWish
+      .split(/[\s,.-]+/)
+      .filter((word) => word && !ignoredWords.has(word));
 
-    words.forEach((word) => {
-      Object.values(synonyms).forEach((group) => {
+    const expandedWishWords = new Set(wishWords);
+
+    wishWords.forEach((word) => {
+      Object.values(synonymGroups).forEach((group) => {
         if (group.includes(word)) {
-          expandedWords.push(...group);
+          group.forEach((synonym) => {
+            expandedWishWords.add(synonym);
+          });
         }
       });
     });
 
-    expandedWords = [
-      ...new Set(expandedWords),
-    ];
-
-    console.log(
-      "EXPANDED SEARCH:",
-      expandedWords
-    );
-
-    // =================================================
-    // SCORE DESTINATIONS
-    // =================================================
+    // --------------------------------
+    // Score destinations
+    // --------------------------------
 
     const scoredDestinations = destinations.map(
       (destination) => {
         let score = 0;
 
-        const name =
-          destination.name?.toLowerCase() || "";
+        const searchableText = [
+          destination.name,
+          destination.description,
+          destination.location,
+          destination.region,
+          destination.difficulty,
+          destination.bestSeason,
 
-        const description =
-          destination.description?.toLowerCase() || "";
+          ...(destination.categories || []),
+          ...(destination.keywords || []),
+          ...(destination.activities || []),
+          ...(destination.suitableFor || []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-        const location =
-          destination.location?.toLowerCase() || "";
+        // --------------------------------
+        // Wish matching
+        // --------------------------------
 
-        const destinationRegion =
-          destination.region?.toLowerCase() || "";
-
-        const destinationDifficulty =
-          destination.difficulty?.toLowerCase() || "";
-
-        const bestSeason =
-          destination.bestSeason?.toLowerCase() || "";
-
-        const categories =
-          destination.categories
-            ?.map((item) => item.toLowerCase())
-            .join(" ") || "";
-
-        const keywords =
-          destination.keywords
-            ?.map((item) => item.toLowerCase())
-            .join(" ") || "";
-
-        const activities =
-          destination.activities
-            ?.map((item) => item.toLowerCase())
-            .join(" ") || "";
-
-        const suitableFor =
-          destination.suitableFor
-            ?.map((item) => item.toLowerCase())
-            .join(" ") || "";
-
-        const searchableText = `
-          ${name}
-          ${description}
-          ${location}
-          ${destinationRegion}
-          ${destinationDifficulty}
-          ${bestSeason}
-          ${categories}
-          ${keywords}
-          ${activities}
-          ${suitableFor}
-        `;
-
-        // =================================================
-        // EXACT DESTINATION NAME
-        // =================================================
-
-        if (
-          searchText.includes(name) ||
-          name.includes(searchText)
-        ) {
-          score += 100;
-        }
-
-        // =================================================
-        // EXACT LOCATION
-        // =================================================
-
-        if (
-          searchText.includes(location) ||
-          searchText.includes(destinationRegion)
-        ) {
-          score += 50;
-        }
-
-        // =================================================
-        // WORD MATCHING
-        // =================================================
-
-        expandedWords.forEach((word) => {
-          if (
-            searchableText.includes(word)
-          ) {
+        expandedWishWords.forEach((word) => {
+          if (searchableText.includes(word)) {
             score += 5;
-          }
-
-          // Name is more important
-          if (name.includes(word)) {
-            score += 15;
-          }
-
-          // Categories are very important
-          if (categories.includes(word)) {
-            score += 12;
-          }
-
-          // Keywords are important
-          if (keywords.includes(word)) {
-            score += 10;
-          }
-
-          // Activities
-          if (activities.includes(word)) {
-            score += 8;
-          }
-
-          // Suitable-for matching
-          if (suitableFor.includes(word)) {
-            score += 8;
           }
         });
 
-        // =================================================
-        // BUDGET
-        // =================================================
+        // --------------------------------
+        // Category matching
+        // --------------------------------
 
-        if (budget) {
-          const userBudget = Number(budget);
+        Object.entries(synonymGroups).forEach(
+          ([category, words]) => {
+            const userWantsCategory = wishWords.some(
+              (word) => words.includes(word)
+            );
+
+            if (!userWantsCategory) return;
+
+            if (
+              destination.categories?.some((item) =>
+                words.includes(String(item).toLowerCase())
+              )
+            ) {
+              score += 10;
+            }
+
+            if (
+              destination.keywords?.some((item) =>
+                words.includes(String(item).toLowerCase())
+              )
+            ) {
+              score += 8;
+            }
+
+            if (
+              destination.activities?.some((item) =>
+                words.includes(String(item).toLowerCase())
+              )
+            ) {
+              score += 8;
+            }
+
+            if (
+              destination.suitableFor?.some((item) =>
+                words.includes(String(item).toLowerCase())
+              )
+            ) {
+              score += 6;
+            }
+
+            if (
+              destination.name
+                ?.toLowerCase()
+                .includes(category)
+            ) {
+              score += 7;
+            }
+
+            if (
+              destination.description
+                ?.toLowerCase()
+                .includes(category)
+            ) {
+              score += 4;
+            }
+          }
+        );
+
+        // --------------------------------
+        // Budget matching
+        // --------------------------------
+
+        if (normalizedBudget) {
+          const destinationBudget = String(
+            destination.budget || destination.price || ""
+          ).toLowerCase();
 
           if (
-            !isNaN(userBudget) &&
-            destination.priceNPR <= userBudget
+            destinationBudget.includes(normalizedBudget)
           ) {
-            score += 15;
+            score += 10;
           }
 
           if (
-            !isNaN(userBudget) &&
-            destination.priceNPR > userBudget
+            normalizedBudget.includes("cheap") &&
+            destination.price &&
+            Number(destination.price) < 80000
           ) {
-            score -= 5;
+            score += 8;
+          }
+
+          if (
+            normalizedBudget.includes("low") &&
+            destination.price &&
+            Number(destination.price) < 80000
+          ) {
+            score += 8;
+          }
+
+          if (
+            normalizedBudget.includes("medium") &&
+            destination.price &&
+            Number(destination.price) >= 80000 &&
+            Number(destination.price) <= 120000
+          ) {
+            score += 8;
+          }
+
+          if (
+            normalizedBudget.includes("high") &&
+            destination.price &&
+            Number(destination.price) > 120000
+          ) {
+            score += 8;
           }
         }
 
-        // =================================================
-        // REGION
-        // =================================================
+        // --------------------------------
+        // Region matching
+        // --------------------------------
 
-        if (
-          region &&
-          destinationRegion ===
-            region.toLowerCase()
-        ) {
-          score += 20;
+        if (normalizedRegion) {
+          if (
+            destination.region
+              ?.toLowerCase()
+              .includes(normalizedRegion)
+          ) {
+            score += 12;
+          }
+
+          if (
+            destination.location
+              ?.toLowerCase()
+              .includes(normalizedRegion)
+          ) {
+            score += 8;
+          }
         }
 
-        // =================================================
-        // DIFFICULTY
-        // =================================================
+        // --------------------------------
+        // Difficulty matching
+        // --------------------------------
 
-        if (
-          difficulty &&
-          destinationDifficulty ===
-            difficulty.toLowerCase()
-        ) {
-          score += 15;
+        if (normalizedDifficulty) {
+          if (
+            destination.difficulty
+              ?.toLowerCase()
+              .includes(normalizedDifficulty)
+          ) {
+            score += 12;
+          }
         }
 
-        // =================================================
-        // SEASON
-        // =================================================
+        // --------------------------------
+        // Season matching
+        // --------------------------------
 
-        if (
-          season &&
-          bestSeason.includes(
-            season.toLowerCase()
-          )
-        ) {
-          score += 10;
+        if (normalizedSeason) {
+          if (
+            destination.bestSeason
+              ?.toLowerCase()
+              .includes(normalizedSeason)
+          ) {
+            score += 12;
+          }
+
+          if (
+            destination.season
+              ?.toLowerCase()
+              .includes(normalizedSeason)
+          ) {
+            score += 8;
+          }
         }
 
         return {
@@ -489,213 +513,106 @@ app.post("/api/recommendations", async (req, res) => {
       }
     );
 
-    // =================================================
-    // SORT
-    // =================================================
+    // --------------------------------
+    // Sort highest score first
+    // --------------------------------
 
     scoredDestinations.sort(
       (a, b) => b.score - a.score
     );
 
-    console.log(
-      "TOP RESULTS:",
-      scoredDestinations
-        .slice(0, 5)
-        .map((item) => ({
-          name: item.destination.name,
-          score: item.score,
-        }))
-    );
+    // --------------------------------
+    // Return top 3
+    // --------------------------------
 
-    // =================================================
-    // GET RESULTS
-    // =================================================
+    let recommendations = scoredDestinations
+      .slice(0, 3)
+      .map((item) => item.destination);
 
-    let recommendations =
-      scoredDestinations
-        .filter(
-          (item) => item.score > 0
-        )
-        .slice(0, 3)
-        .map((item) => ({
-          ...item.destination.toObject(),
-          score: item.score,
-        }));
-
-    // =================================================
-    // FALLBACK
-    // =================================================
+    // --------------------------------
+    // Fallback
+    // --------------------------------
 
     if (!recommendations.length) {
-      recommendations =
-        destinations
-          .slice(0, 3)
-          .map((destination) => ({
-            ...destination.toObject(),
-            score: 1,
-          }));
+      recommendations = destinations.slice(0, 3);
     }
 
-    // =================================================
-    // RESPONSE
-    // =================================================
-
     res.json({
-      message:
-        "Recommendations generated successfully",
-
-      search: wish,
-
+      success: true,
       recommendations,
     });
-
   } catch (error) {
     console.error(
       "Recommendation error:",
-      error.message
+      error
     );
 
     res.status(500).json({
-      message:
-        "Failed to generate recommendations",
-    });
-  }
-});
-
-// =====================================================
-// BOOKING API - CREATE BOOKING
-// =====================================================
-
-app.post("/api/bookings", async (req, res) => {
-  try {
-    const {
-      fullName,
-      email,
-      phone,
-      destination,
-      travelDate,
-      travelers,
-    } = req.body;
-
-    // Check required fields
-    if (
-      !fullName ||
-      !email ||
-      !phone ||
-      !destination ||
-      !travelDate ||
-      !travelers
-    ) {
-      return res.status(400).json({
-        message:
-          "Please provide all required booking details",
-      });
-    }
-
-    // Create booking
-    const booking = new Booking({
-      fullName,
-      email,
-      phone,
-      destination,
-      travelDate,
-      travelers,
-    });
-
-    // Save to MongoDB
-    const savedBooking =
-      await booking.save();
-
-    console.log("------------------------------------");
-    console.log("NEW BOOKING SAVED");
-    console.log("------------------------------------");
-
-    console.log(
-      "Name:",
-      savedBooking.fullName
-    );
-
-    console.log(
-      "Email:",
-      savedBooking.email
-    );
-
-    console.log(
-      "Phone:",
-      savedBooking.phone
-    );
-
-    console.log(
-      "Destination:",
-      savedBooking.destination
-    );
-
-    console.log(
-      "Travel Date:",
-      savedBooking.travelDate
-    );
-
-    console.log(
-      "Travelers:",
-      savedBooking.travelers
-    );
-
-    console.log(
-      "Booking ID:",
-      savedBooking._id
-    );
-
-    console.log("------------------------------------");
-
-    res.status(201).json({
-      message:
-        "Booking saved successfully",
-
-      booking: savedBooking,
-    });
-
-  } catch (error) {
-    console.error(
-      "Booking error:",
-      error.message
-    );
-
-    res.status(500).json({
-      message:
-        "Failed to save booking",
-
+      success: false,
+      message: "Failed to generate recommendations",
       error: error.message,
     });
   }
 });
 
-// =====================================================
-// GET ALL BOOKINGS - ADMIN
-// =====================================================
+// ===============================
+// CREATE BOOKING
+// ===============================
 
-app.get("/api/bookings", async (req, res) => {
+app.post("/api/bookings", async (req, res) => {
   try {
-    const bookings = await Booking.find()
-      .sort({ createdAt: -1 });
+    const booking = new Booking(req.body);
 
-    res.json(bookings);
+    const savedBooking = await booking.save();
 
+    res.status(201).json({
+      success: true,
+      message: "Booking created successfully",
+      booking: savedBooking,
+    });
   } catch (error) {
     console.error(
-      "Error fetching bookings:",
-      error.message
+      "Booking creation error:",
+      error
     );
 
     res.status(500).json({
-      message:
-        "Failed to fetch bookings",
+      success: false,
+      message: "Failed to create booking",
+      error: error.message,
     });
   }
 });
 
-// =====================================================
-// UPDATE BOOKING STATUS - ADMIN
-// =====================================================
+// ===============================
+// GET ALL BOOKINGS
+// ===============================
+
+app.get("/api/bookings", async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .sort({
+        createdAt: -1,
+      });
+
+    res.json(bookings);
+  } catch (error) {
+    console.error(
+      "Error fetching bookings:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings",
+      error: error.message,
+    });
+  }
+});
+
+// ===============================
+// UPDATE BOOKING STATUS
+// ===============================
 
 app.patch(
   "/api/bookings/:id/status",
@@ -703,66 +620,59 @@ app.patch(
     try {
       const { status } = req.body;
 
-      // Check valid status
-      if (
-        ![
-          "pending",
-          "confirmed",
-          "cancelled",
-        ].includes(status)
-      ) {
-        return res.status(400).json({
-          message:
-            "Invalid booking status",
-        });
-      }
-
-      // Find and update booking
       const booking =
         await Booking.findByIdAndUpdate(
           req.params.id,
-          { status },
-          { new: true }
+          {
+            status,
+          },
+          {
+            new: true,
+          }
         );
 
-      // Booking not found
       if (!booking) {
         return res.status(404).json({
-          message:
-            "Booking not found",
+          success: false,
+          message: "Booking not found",
         });
       }
 
       res.json({
-        message:
-          "Booking status updated successfully",
-
+        success: true,
+        message: "Booking status updated",
         booking,
       });
-
     } catch (error) {
       console.error(
-        "Error updating booking status:",
-        error.message
+        "Booking status update error:",
+        error
       );
 
       res.status(500).json({
-        message:
-          "Failed to update booking status",
+        success: false,
+        message: "Failed to update booking status",
+        error: error.message,
       });
     }
   }
 );
 
-// =====================================================
-// SERVER
-// =====================================================
+// ===============================
+// VERCEL EXPORT
+// ===============================
 
-const PORT =
-  process.env.PORT || 5000;
+// IMPORTANT:
+// Do NOT use app.listen() when deploying
+// this Express backend to Vercel.
+// Export for Vercel
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.log(
-    `EasyTravel backend running on port ${PORT}`
-  );
-});
+// Run locally
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+
+  app.listen(PORT, () => {
+    console.log(`EasyTravel backend running on port ${PORT}`);
+  });
+}
