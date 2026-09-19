@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: aliceblue;
+}
+html {
+  scroll-behavior: smooth;
+}
+@layer utilities {
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .font-fakhwang {
+    font-family: 'Fahkwang', sans-serif;
+  }
+}
