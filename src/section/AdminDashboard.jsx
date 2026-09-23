@@ -16,7 +16,7 @@ function AdminDashboard() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/bookings"
+        "https://easytravel-hgi8.vercel.app/api/bookings"
       );
 
       if (!response.ok) {
@@ -43,7 +43,7 @@ function AdminDashboard() {
       setUpdatingId(bookingId);
 
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${bookingId}/status`,
+        `https://easytravel-hgi8.vercel.app/api/bookings/${bookingId}/status`,
         {
           method: "PATCH",
           headers: {

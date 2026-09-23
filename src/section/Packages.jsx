@@ -1,27 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Existing images
-import everestImg from '../assets/everest.jpg';
-import annapurnaImg from '../assets/annapurna1.jpg';
-import machhapuchhreImg from '../assets/machhapuchre.jpeg';
-import langtangImg from '../assets/langtang.jpg';
+import everestImg from "../assets/everest.jpg";
+import annapurnaImg from "../assets/annapurna1.jpg";
+import machhapuchhreImg from "../assets/machhapuchre.jpeg";
+import langtangImg from "../assets/langtang.jpg";
 
 function Packages() {
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    AOS.init({ duration: 1000, once: true });
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
 
-    fetch('http://localhost:5000/api/destinations')
+    fetch("https://easytravel-hgi8.vercel.app/api/destinations")
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to fetch destinations');
+          throw new Error("Failed to fetch destinations");
         }
+
         return response.json();
       })
       .then((data) => {
@@ -29,8 +34,8 @@ function Packages() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching destinations:', error);
-        setError('Unable to load destinations.');
+        console.error("Error fetching destinations:", error);
+        setError("Unable to load destinations.");
         setLoading(false);
       });
   }, []);
@@ -39,7 +44,7 @@ function Packages() {
     everestImg,
     annapurnaImg,
     machhapuchhreImg,
-    langtangImg
+    langtangImg,
   ];
 
   if (loading) {
@@ -67,8 +72,9 @@ function Packages() {
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+
           <div data-aos="fade-right">
-            <span className="text-xs tracking-[0.3em] text-[#C8D9E6] font-bold uppercase">
+            <span className="text-xs tracking-[0.3em] text-[#567C8D] font-bold uppercase">
               ★ Top Selling
             </span>
 
@@ -113,25 +119,25 @@ function Packages() {
                   </span>
 
                   <span className="text-sm font-extrabold text-[#2F4156]">
-                    NPR {pkg.priceNPR.toLocaleString()}
+                    NPR {pkg.priceNPR?.toLocaleString()}
                   </span>
-
                 </div>
+
               </div>
 
               <div className="flex flex-col gap-1 px-2">
 
-                <div className="flex items-center gap-2 text-[10px] text-[#C8D9E6] font-bold uppercase tracking-widest">
-
+                <div className="flex items-center gap-2 text-[10px] text-[#567C8D] font-bold uppercase tracking-widest">
                   <span>{pkg.difficulty}</span>
 
-                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-300">
+                    •
+                  </span>
 
                   <span>{pkg.region}</span>
-
                 </div>
 
-                <h3 className="text-xl font-bold group-hover:text-[#C8D9E6] transition-colors duration-300">
+                <h3 className="text-xl font-bold group-hover:text-[#567C8D] transition-colors duration-300">
                   {pkg.name}, Nepal
                 </h3>
 

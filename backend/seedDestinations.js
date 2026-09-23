@@ -85,7 +85,7 @@ const RecommendationPage = () => {
         setError('');
 
         const response = await fetch(
-          'http://localhost:5000/api/recommendations',
+          'https://easytravel-hgi8.vercel.app/recommendations',
           {
             method: 'POST',
             headers: {

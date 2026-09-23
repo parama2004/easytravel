@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import React, { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 function BookingForm() {
   useEffect(() => {
@@ -12,18 +12,18 @@ function BookingForm() {
 
   // Form data
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    destination: 'Rara Lake',
-    travelDate: '',
+    fullName: "",
+    email: "",
+    phone: "",
+    destination: "Rara Lake",
+    travelDate: "",
     travelers: 1,
   });
 
   // Status messages
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   // Handle input changes
   const handleChange = (e) => {
@@ -31,7 +31,7 @@ function BookingForm() {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "travelers" ? Number(value) : value,
     }));
   };
 
@@ -40,18 +40,18 @@ function BookingForm() {
     e.preventDefault();
 
     setLoading(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      console.log('Sending booking:', formData);
+      console.log("Sending booking:", formData);
 
       const response = await fetch(
-        'http://localhost:5000/api/bookings',
+        "https://easytravel-hgi8.vercel.app/api/bookings",
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(formData),
         }
@@ -59,34 +59,34 @@ function BookingForm() {
 
       const data = await response.json();
 
-      console.log('Booking response:', data);
+      console.log("Booking response:", data);
 
       if (!response.ok) {
         throw new Error(
-          data.message || 'Failed to save booking'
+          data.message || "Failed to save booking"
         );
       }
 
       // Success
       setMessage(
-        'Booking inquiry sent successfully! Our team will contact you soon.'
+        "Booking inquiry sent successfully! Our team will contact you soon."
       );
 
       // Clear form
       setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        destination: 'Rara Lake',
-        travelDate: '',
+        fullName: "",
+        email: "",
+        phone: "",
+        destination: "Rara Lake",
+        travelDate: "",
         travelers: 1,
       });
     } catch (err) {
-      console.error('Booking error:', err);
+      console.error("Booking error:", err);
 
       setError(
         err.message ||
-          'Something went wrong. Please try again.'
+          "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -105,7 +105,6 @@ function BookingForm() {
         >
           {/* LEFT SIDE: INFO */}
           <div className="bg-[#2F4156] p-12 text-white flex flex-col justify-center relative">
-
             <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 
             <span
@@ -161,7 +160,6 @@ function BookingForm() {
               onSubmit={handleSubmit}
               className="space-y-5"
             >
-
               {/* FULL NAME */}
               <div
                 data-aos="fade-left"
@@ -275,7 +273,7 @@ function BookingForm() {
                   name="travelDate"
                   value={formData.travelDate}
                   onChange={handleChange}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:bg-white focus:border-[#F1A501] focus:ring-4 focus:ring-[#F1A501]/5 transition-all duration-300"
                 />
               </div>
@@ -323,11 +321,8 @@ function BookingForm() {
                 data-aos-delay="550"
                 className="w-full bg-[#F1A501] text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-[#df9801] hover:shadow-[#F1A501]/30 hover:-translate-y-1 active:scale-95 transition-all duration-300 mt-4 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                {loading
-                  ? 'Sending...'
-                  : 'Send Inquiry'}
+                {loading ? "Sending..." : "Send Inquiry"}
               </button>
-
             </form>
           </div>
         </div>
@@ -337,4 +332,3 @@ function BookingForm() {
 }
 
 export default BookingForm;
-

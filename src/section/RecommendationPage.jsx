@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import {
   HiSparkles,
   HiArrowLeft,
   HiCalendar,
   HiCreditCard,
   HiCheckCircle,
-} from 'react-icons/hi';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+} from "react-icons/hi";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Automatically load ALL images from src/assets
 const assetImages = import.meta.glob(
-  '../assets/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+  "../assets/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}",
   {
     eager: true,
-    query: '?url',
-    import: 'default',
+    query: "?url",
+    import: "default",
   }
 );
 
@@ -24,9 +27,9 @@ const assetImages = import.meta.glob(
 const normalizeName = (name) => {
   return name
     .toLowerCase()
-    .replace(/\.(jpg|jpeg|png|webp)$/i, '')
-    .replace(/[-_]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/\.(jpg|jpeg|png|webp)$/i, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 };
 
@@ -34,7 +37,7 @@ const normalizeName = (name) => {
 const imageMap = {};
 
 Object.entries(assetImages).forEach(([path, imageUrl]) => {
-  const filename = path.split('/').pop();
+  const filename = path.split("/").pop();
   const cleanName = normalizeName(filename);
 
   imageMap[cleanName] = imageUrl;
@@ -42,202 +45,202 @@ Object.entries(assetImages).forEach(([path, imageUrl]) => {
 
 // Destination name → possible asset filenames
 const destinationImageAliases = {
-  'Everest Base Camp': [
-    'everest',
-    'everest1',
-    'everest2',
+  "Everest Base Camp": [
+    "everest",
+    "everest1",
+    "everest2",
   ],
 
-  'Annapurna Base Camp': [
-    'annapurna1',
-    'annapurna2',
-    'annapurna i',
-    'annapurna-i',
+  "Annapurna Base Camp": [
+    "annapurna1",
+    "annapurna2",
+    "annapurna i",
+    "annapurna-i",
   ],
 
-  'Machhapuchhre': [
-    'machhapuchre',
-    'fishtail1',
-    'fishtail2',
+  Machhapuchhre: [
+    "machhapuchre",
+    "fishtail1",
+    "fishtail2",
   ],
 
-  'Langtang Valley': [
-    'langtang',
-    'langtang1',
-    'langtang2',
-    'langtangvalley',
-    'langtang valley',
+  "Langtang Valley": [
+    "langtang",
+    "langtang1",
+    "langtang2",
+    "langtangvalley",
+    "langtang valley",
   ],
 
-  'Tilicho Lake': [
-    'tilicho',
-    'tilicho1',
-    'tilicho2',
-    'tilicho lake',
+  "Tilicho Lake": [
+    "tilicho",
+    "tilicho1",
+    "tilicho2",
+    "tilicho lake",
   ],
 
-  'Gosaikunda Lake': [
-    'gosaikunda',
-    'gosaikunda1',
-    'gosaikunda2',
-    'gosainkunda',
+  "Gosaikunda Lake": [
+    "gosaikunda",
+    "gosaikunda1",
+    "gosaikunda2",
+    "gosainkunda",
   ],
 
-  'Gosaikunda': [
-    'gosaikunda',
-    'gosaikunda1',
-    'gosaikunda2',
-    'gosainkunda',
+  Gosaikunda: [
+    "gosaikunda",
+    "gosaikunda1",
+    "gosaikunda2",
+    "gosainkunda",
   ],
 
-  'Mustang': [
-    'mustang1',
-    'mustang2',
-    'mustang',
+  Mustang: [
+    "mustang1",
+    "mustang2",
+    "mustang",
   ],
 
-  'Upper Mustang': [
-    'upper mustang',
-    'mustang2',
-    'mustang1',
+  "Upper Mustang": [
+    "upper mustang",
+    "mustang2",
+    "mustang1",
   ],
 
-  'Bandipur': [
-    'bandipur',
+  Bandipur: [
+    "bandipur",
   ],
 
-  'Bhaktapur': [
-    'bhaktapur',
+  Bhaktapur: [
+    "bhaktapur",
   ],
 
-  'Kathmandu Valley': [
-    'kathmandu',
-    'pashupati',
-    'budhanilkantha',
+  "Kathmandu Valley": [
+    "kathmandu",
+    "pashupati",
+    "budhanilkantha",
   ],
 
-  'Kathmandu': [
-    'kathmandu',
-    'pashupati',
-    'budhanilkantha',
+  Kathmandu: [
+    "kathmandu",
+    "pashupati",
+    "budhanilkantha",
   ],
 
-  'Chitwan National Park': [
-    'chitwan',
+  "Chitwan National Park": [
+    "chitwan",
   ],
 
-  'Patan': [
-    'patan',
+  Patan: [
+    "patan",
   ],
 
-  'Pokhara': [
-    'pokhara',
+  Pokhara: [
+    "pokhara",
   ],
 
-  'Lumbini': [
-    'lumbini',
-    'janaki',
+  Lumbini: [
+    "lumbini",
+    "janaki",
   ],
 
-  'Rara Lake': [
-    'rara',
-    'rara1',
-    'rara2',
-    'raralake',
+  "Rara Lake": [
+    "rara",
+    "rara1",
+    "rara2",
+    "raralake",
   ],
 
-  'Rara': [
-    'rara',
-    'rara1',
-    'rara2',
-    'raralake',
+  Rara: [
+    "rara",
+    "rara1",
+    "rara2",
+    "raralake",
   ],
 
-  'Ghandruk': [
-    'ghandruk',
-    'ghandruk1',
-    'ghandruk2',
-    'ghandruk3',
+  Ghandruk: [
+    "ghandruk",
+    "ghandruk1",
+    "ghandruk2",
+    "ghandruk3",
   ],
 
-  'Tansen': [
-    'tansen',
-    'palpa',
+  Tansen: [
+    "tansen",
+    "palpa",
   ],
 
-  'Palpa': [
-    'palpa',
-    'tansen',
+  Palpa: [
+    "palpa",
+    "tansen",
   ],
 
-  'Makalu': [
-    'makalu',
+  Makalu: [
+    "makalu",
   ],
 
-  'Manaslu': [
-    'manaslu',
+  Manaslu: [
+    "manaslu",
   ],
 
-  'Panch Pokhari': [
-    'pachpokhari',
-    'pachpokhari2',
-    'panchpokhari',
-    'panchpokhari11',
+  "Panch Pokhari": [
+    "pachpokhari",
+    "pachpokhari2",
+    "panchpokhari",
+    "panchpokhari11",
   ],
 
-  'Panchpokhari': [
-    'pachpokhari',
-    'pachpokhari2',
-    'panchpokhari',
-    'panchpokhari11',
+  Panchpokhari: [
+    "pachpokhari",
+    "pachpokhari2",
+    "panchpokhari",
+    "panchpokhari11",
   ],
 
-  'Khopra Danda': [
-    'khopra1',
-    'khopra2',
-    'khopra danda',
+  "Khopra Danda": [
+    "khopra1",
+    "khopra2",
+    "khopra danda",
   ],
 
-  'Pathivara': [
-    'pathivara',
+  Pathivara: [
+    "pathivara",
   ],
 
-  'Muktinath': [
-    'muktinakh',
-    'muktinath',
+  Muktinath: [
+    "muktinakh",
+    "muktinath",
   ],
 
-  'Ilam': [
-    'illam',
-    'ilam',
+  Ilam: [
+    "illam",
+    "ilam",
   ],
 
-  'Bardia National Park': [
-    'bardia',
+  "Bardia National Park": [
+    "bardia",
   ],
 
-  'Phewa Lake': [
-    'pokhara',
+  "Phewa Lake": [
+    "pokhara",
   ],
 
-  'Nagarkot': [
-    'nagarkot',
+  Nagarkot: [
+    "nagarkot",
   ],
 
-  'Janaki Temple': [
-    'janaki',
+  "Janaki Temple": [
+    "janaki",
   ],
 
-  'Budhanilkantha': [
-    'budhanilkantha',
+  Budhanilkantha: [
+    "budhanilkantha",
   ],
 
-  'Pashupatinath': [
-    'pashupati',
+  Pashupatinath: [
+    "pashupati",
   ],
 
-  'Kaligandaki': [
-    'kaligandaki',
+  Kaligandaki: [
+    "kaligandaki",
   ],
 };
 
@@ -247,7 +250,7 @@ const getDestinationImage = (destination) => {
     return null;
   }
 
-  const destinationName = destination.name || '';
+  const destinationName = destination.name || "";
 
   // First try aliases
   const aliases = destinationImageAliases[destinationName];
@@ -286,8 +289,8 @@ const getDestinationImage = (destination) => {
   // Use backend imageUrl only if it is a real URL
   if (
     destination.imageUrl &&
-    (destination.imageUrl.startsWith('http://') ||
-      destination.imageUrl.startsWith('https://'))
+    (destination.imageUrl.startsWith("http://") ||
+      destination.imageUrl.startsWith("https://"))
   ) {
     return destination.imageUrl;
   }
@@ -301,11 +304,11 @@ const RecommendationPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const userWish =
     location.state?.wish?.trim() ||
-    'A general adventure in Nepal';
+    "A general adventure in Nepal";
 
   useEffect(() => {
     AOS.init({
@@ -316,19 +319,16 @@ const RecommendationPage = () => {
     const getRecommendations = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
 
-        console.log(
-          'Sending wish to backend:',
-          userWish
-        );
+        console.log("Sending wish to backend:", userWish);
 
         const response = await fetch(
-          'http://localhost:5000/api/recommendations',
+          "https://easytravel-hgi8.vercel.app/api/recommendations",
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               wish: userWish,
@@ -339,14 +339,14 @@ const RecommendationPage = () => {
         const data = await response.json();
 
         console.log(
-          'Backend recommendation response:',
+          "Backend recommendation response:",
           data
         );
 
         if (!response.ok) {
           throw new Error(
             data.message ||
-              'Failed to get recommendations'
+              "Failed to get recommendations"
           );
         }
 
@@ -359,13 +359,13 @@ const RecommendationPage = () => {
         }, 200);
       } catch (err) {
         console.error(
-          'Recommendation error:',
+          "Recommendation error:",
           err
         );
 
         setError(
           err.message ||
-            'Something went wrong while getting recommendations.'
+            "Something went wrong while getting recommendations."
         );
       } finally {
         setLoading(false);
@@ -375,13 +375,12 @@ const RecommendationPage = () => {
     getRecommendations();
   }, [userWish]);
 
-  // -----------------------------
   // LOADING
-  // -----------------------------
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F5EFEB] flex items-center justify-center">
         <div className="text-center">
+
           <div className="w-16 h-16 border-4 border-[#C8D9E6] border-t-[#2F4156] rounded-full animate-spin mx-auto mb-6"></div>
 
           <HiSparkles className="text-[#2F4156] text-4xl mx-auto mb-3" />
@@ -394,18 +393,19 @@ const RecommendationPage = () => {
             Our AI is creating personalized
             recommendations for you.
           </p>
+
         </div>
       </div>
     );
   }
 
-  // -----------------------------
   // ERROR
-  // -----------------------------
   if (error) {
     return (
       <div className="min-h-screen bg-[#F5EFEB] flex items-center justify-center px-4">
+
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center">
+
           <HiSparkles className="text-red-500 text-5xl mx-auto mb-4" />
 
           <h2 className="text-2xl font-bold text-[#2F4156] mb-3">
@@ -422,19 +422,21 @@ const RecommendationPage = () => {
           >
             Go Back
           </button>
+
         </div>
       </div>
     );
   }
 
-  // -----------------------------
   // MAIN PAGE
-  // -----------------------------
   return (
     <div className="min-h-screen bg-[#F5EFEB]">
+
       {/* HEADER */}
       <div className="bg-[#2F4156] text-white">
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-white/80 hover:text-white mb-6 transition"
@@ -444,11 +446,13 @@ const RecommendationPage = () => {
           </button>
 
           <div className="flex items-center gap-3 mb-3">
+
             <HiSparkles className="text-3xl" />
 
             <h1 className="text-3xl md:text-4xl font-bold">
               Your AI Travel Recommendations
             </h1>
+
           </div>
 
           <p className="text-white/80 max-w-3xl">
@@ -460,13 +464,16 @@ const RecommendationPage = () => {
               "{userWish}"
             </span>
           </div>
+
         </div>
       </div>
 
       {/* CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
         {recommendations.length === 0 ? (
           <div className="text-center py-16">
+
             <HiSparkles className="text-[#2F4156] text-6xl mx-auto mb-4" />
 
             <h2 className="text-2xl font-bold text-[#2F4156]">
@@ -483,6 +490,7 @@ const RecommendationPage = () => {
             >
               Try Again
             </button>
+
           </div>
         ) : (
           <>
@@ -503,8 +511,10 @@ const RecommendationPage = () => {
 
             {/* RECOMMENDATION CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
               {recommendations.map(
                 (destination, index) => {
+
                   const image =
                     getDestinationImage(
                       destination
@@ -521,30 +531,32 @@ const RecommendationPage = () => {
                       data-aos-delay={index * 100}
                       className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300"
                     >
+
                       {/* IMAGE */}
                       <div className="h-64 bg-[#C8D9E6]/40 relative overflow-hidden">
+
                         {image ? (
                           <img
                             src={image}
                             alt={
                               destination.name ||
-                              'Nepal destination'
+                              "Nepal destination"
                             }
                             className="w-full h-full object-cover transition duration-500 hover:scale-105"
                             onError={(e) => {
                               e.currentTarget.style.display =
-                                'none';
+                                "none";
 
                               const fallback =
                                 e.currentTarget
                                   .parentElement
                                   .querySelector(
-                                    '.image-fallback'
+                                    ".image-fallback"
                                   );
 
                               if (fallback) {
                                 fallback.style.display =
-                                  'flex';
+                                  "flex";
                               }
                             }}
                           />
@@ -554,21 +566,23 @@ const RecommendationPage = () => {
                         <div
                           className={`image-fallback absolute inset-0 items-center justify-center ${
                             image
-                              ? 'hidden'
-                              : 'flex'
+                              ? "hidden"
+                              : "flex"
                           }`}
                         >
                           <div className="text-center px-4">
+
                             <HiSparkles className="text-[#2F4156] text-5xl mx-auto mb-3" />
 
                             <p className="text-[#2F4156] font-bold text-lg">
                               {destination.name ||
-                                'Nepal Destination'}
+                                "Nepal Destination"}
                             </p>
 
                             <p className="text-gray-500 text-sm mt-1">
                               Image coming soon
                             </p>
+
                           </div>
                         </div>
 
@@ -577,37 +591,35 @@ const RecommendationPage = () => {
                           <HiSparkles />
                           AI Pick
                         </div>
+
                       </div>
 
                       {/* CARD CONTENT */}
                       <div className="p-6">
-                        {/* NAME */}
+
                         <h3 className="text-2xl font-bold text-[#2F4156] mb-2">
                           {destination.name ||
-                            'Nepal Destination'}
+                            "Nepal Destination"}
                         </h3>
 
-                        {/* REGION */}
                         {destination.region && (
                           <p className="text-[#567C8D] font-medium mb-3">
                             📍 {destination.region}
                           </p>
                         )}
 
-                        {/* DESCRIPTION */}
                         {destination.description && (
                           <p className="text-gray-600 leading-relaxed mb-5">
-                            {
-                              destination.description
-                            }
+                            {destination.description}
                           </p>
                         )}
 
                         {/* DETAILS */}
                         <div className="space-y-3 border-t border-gray-100 pt-5">
-                          {/* DURATION */}
+
                           {destination.duration && (
                             <div className="flex items-center gap-3">
+
                               <HiCalendar className="text-[#567C8D] text-xl" />
 
                               <div>
@@ -616,17 +628,16 @@ const RecommendationPage = () => {
                                 </p>
 
                                 <p className="font-semibold text-gray-800">
-                                  {
-                                    destination.duration
-                                  }
+                                  {destination.duration}
                                 </p>
                               </div>
+
                             </div>
                           )}
 
-                          {/* BEST SEASON */}
                           {destination.bestSeason && (
                             <div className="flex items-center gap-3">
+
                               <HiCheckCircle className="text-[#567C8D] text-xl" />
 
                               <div>
@@ -635,17 +646,16 @@ const RecommendationPage = () => {
                                 </p>
 
                                 <p className="font-semibold text-gray-800">
-                                  {
-                                    destination.bestSeason
-                                  }
+                                  {destination.bestSeason}
                                 </p>
                               </div>
+
                             </div>
                           )}
 
-                          {/* BUDGET */}
                           {destination.priceNPR && (
                             <div className="flex items-center gap-3">
+
                               <HiCreditCard className="text-[#567C8D] text-xl" />
 
                               <div>
@@ -654,18 +664,19 @@ const RecommendationPage = () => {
                                 </p>
 
                                 <p className="font-semibold text-gray-800">
-                                  NPR{' '}
+                                  NPR{" "}
                                   {Number(
                                     destination.priceNPR
                                   ).toLocaleString()}
                                 </p>
                               </div>
+
                             </div>
                           )}
 
-                          {/* DIFFICULTY */}
                           {destination.difficulty && (
                             <div className="flex items-center gap-3">
+
                               <HiSparkles className="text-[#567C8D] text-xl" />
 
                               <div>
@@ -674,25 +685,26 @@ const RecommendationPage = () => {
                                 </p>
 
                                 <p className="font-semibold text-gray-800">
-                                  {
-                                    destination.difficulty
-                                  }
+                                  {destination.difficulty}
                                 </p>
                               </div>
+
                             </div>
                           )}
+
                         </div>
 
                         {/* HIGHLIGHTS */}
                         {destination.highlights &&
-                          destination.highlights
-                            .length > 0 && (
+                          destination.highlights.length > 0 && (
                             <div className="mt-5">
+
                               <p className="font-bold text-[#2F4156] mb-3">
                                 Highlights
                               </p>
 
                               <div className="flex flex-wrap gap-2">
+
                                 {destination.highlights.map(
                                   (
                                     highlight,
@@ -708,6 +720,7 @@ const RecommendationPage = () => {
                                     </span>
                                   )
                                 )}
+
                               </div>
                             </div>
                           )}
@@ -715,7 +728,7 @@ const RecommendationPage = () => {
                         {/* BOOK BUTTON */}
                         <button
                           onClick={() => {
-                            navigate('/', {
+                            navigate("/", {
                               state: {
                                 selectedDestination:
                                   destination,
@@ -726,11 +739,13 @@ const RecommendationPage = () => {
                         >
                           Book This Experience
                         </button>
+
                       </div>
                     </div>
                   );
                 }
               )}
+
             </div>
 
             {/* BOTTOM */}
@@ -746,11 +761,14 @@ const RecommendationPage = () => {
                 Try Another Preference
               </button>
             </div>
+
           </>
         )}
+
       </main>
     </div>
   );
 };
 
 export default RecommendationPage;
+
